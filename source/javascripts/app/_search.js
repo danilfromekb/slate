@@ -1,7 +1,21 @@
 //= require ../lib/_lunr
+//= require ../lib/_lunr_stemmer_support
+//= require ../lib/_lunr_ru
 //= require ../lib/_jquery.highlight
 (function () {
   'use strict';
+
+  function trimmerEnRu(token) {
+    return token
+        .replace(/^[^\wа-яёА-ЯЁ]+/, '')
+        .replace(/[^\wа-яёА-ЯЁ]+$/, '');
+  };
+
+  lunr.Pipeline.registerFunction(trimmerEnRu, 'trimmer-enru');
+
+  lunr.stopWordFilter.stopWords =
+      lunr.stopWordFilter.stopWords.union(
+          lunr.ru.stopWordFilter.stopWords);
 
   var content, searchResults;
   var highlightOpts = { element: 'span', className: 'search-highlight' };
@@ -11,7 +25,7 @@
   index.ref('id');
   index.field('title', { boost: 10 });
   index.field('body');
-  index.pipeline.add(lunr.trimmer, lunr.stopWordFilter);
+  index.pipeline.add(trimmerEnRu, lunr.stopWordFilter, lunr.stemmer, lunr.ru.stemmer);
 
   $(populate);
   $(bind);
